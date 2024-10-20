@@ -6,12 +6,9 @@ import { ServiceTwo } from './service.two';
 @Inject() 
 @CD
 export class ServiceOne { 
+
   constructor(private serviceTwo: ServiceTwo) {
     console.log('ServiceOne initialized with ServiceTwo');
-  }
-
-  public init() {
-    console.log(this.serviceTwo.callServiceOne());
   }
 
   public printMessage() {

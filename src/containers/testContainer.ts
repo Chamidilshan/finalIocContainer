@@ -37,6 +37,7 @@ export class IoC {
 
     // Get the constructor parameter types (dependencies)
     const paramTypes = Reflect.getMetadata('design:paramtypes', target) || [];
+    // console.log( `paramTypes: ${paramTypes}`);
 
     // First resolve dependencies and create proxies for them, without immediately resolving them
     const dependencies = paramTypes
@@ -58,8 +59,18 @@ export class IoC {
                 console.log(`Proxy for ${param.name} is forwarding access to real instance property: ${String(propKey)}`);
                 return (realInstance as any)[propKey];
               },
+              set(_, propKey, value) {
+                const realInstance = IoC.container.get(param.name);
+                if (!realInstance) {
+                  throw new Error(`Circular dependency detected: ${param.name} is not fully initialized yet.`);
+                }
+                console.log(`Proxy for ${param.name} is forwarding setting of real instance property: ${String(propKey)} with value: ${value}`);
+                (realInstance as any)[propKey] = value;
+                return true;
+              }
             }
           );
+          
           IoC.inProgress.set(param.name, proxy); // Store the proxy for the dependency
           IoC.proxies.set(param.name, proxy); // Store the proxy separately for later updating
           console.log(`Proxy Created for ${param.name}`);

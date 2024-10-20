@@ -5,8 +5,9 @@ import { ServiceThree } from './service.three';
 @Inject()
 @CD
 export class ServiceTwo {
+  private index = 10;
   constructor(
-    private serviceOne: ServiceOne
+    private serviceOne: ServiceOne,
   ) {
     console.log('ServiceTwo initialized with ServiceOne ');
   }
@@ -15,7 +16,8 @@ export class ServiceTwo {
     return this.serviceOne.printMessage();
   }  
 
-  public printMessage() {
-    return 'Hello from ServiceTwo!';
+  public printMessage() { 
+    this.index = this.index + 1;
+    return 'Hello from ServiceTwo! ' + this.index;
   }
 }

@@ -13,10 +13,9 @@ function main() {
   const allServices = [
     ServiceOne, 
     ServiceTwo, 
-    // ServiceThree
+    ServiceThree
   ];
 
-  console.log('Starting IoC initialization');
 
   // Initialize the IoC container with services
   IoC.init(allServices);
@@ -46,10 +45,11 @@ function main() {
 const serviceOne = IoC.resolve(ServiceOne);	
 // console.log(serviceOne.printMessage());
 console.log(serviceOne.callServiceTwo());
+console.log(serviceOne.callServiceTwo());
 // serviceOne.init(); 
 
 // const serviceTwo = IoC.resolve(ServiceTwo);
-// console.log(serviceTwo.printMessage());
+// console.log(serviceTwo.callServiceOne());
 
 // console.log(serviceOne.printMessage());
 
@@ -58,9 +58,9 @@ console.log(serviceOne.callServiceTwo());
 // const serviceTest = new ServiceOne(serviceThree);
 // console.log(serviceTest.printMessage());
 
-// const serviceOneSecond = IoC.resolve(ServiceOne);
+const serviceOneSecond = IoC.resolve(ServiceOne);
 // console.log(serviceOneSecond.printMessage());
-// console.log(serviceOneSecond.printMessage());
+console.log(serviceOneSecond.callServiceTwo());
 
 // const serviceThree = IoC.resolve(ServiceThree);
 // console.log(serviceThree.getMessage());
