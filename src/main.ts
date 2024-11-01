@@ -1,5 +1,5 @@
 // import { IoC } from './containers/ioc.container';
-import { IoC } from './containers/testContainer';
+import { IoC, paramTypesStore } from './containers/testContainer';
 import { ServiceOne } from './services/service.one';
 import { ServiceTwo } from './services/service.two';
 // import { ServiceThree } from './services/service.three';
@@ -16,9 +16,16 @@ function main() {
     ServiceThree
   ];
 
-
+paramTypesStore.set('ServiceOne', [ServiceTwo]);
+paramTypesStore.set('ServiceTwo', [ServiceThree]);
+paramTypesStore.set('ServiceThree', [ServiceTwo]);
   // Initialize the IoC container with services
   IoC.init(allServices);
+
+
+
+//   const serviceThree = IoC.resolve(ServiceThree);
+// console.log(serviceThree.callServiceOne());
 
 //   console.log(Reflect.getMetadata('design:paramtypes', UserService)); 
 
@@ -42,14 +49,16 @@ function main() {
 //   }
 
 
-const serviceOne = IoC.resolve(ServiceOne);	
-// console.log(serviceOne.printMessage());
-console.log(serviceOne.callServiceTwo());
-console.log(serviceOne.callServiceTwo());
+// const serviceOne = IoC.resolve(ServiceOne);	
+// console.log(serviceOne.callServiceTwo());
+// console.log(serviceOne.callServiceTwo());
+// console.log(serviceOne.callServiceTwo());
 // serviceOne.init(); 
 
-// const serviceTwo = IoC.resolve(ServiceTwo);
-// console.log(serviceTwo.callServiceOne());
+const serviceTwo = IoC.resolve(ServiceTwo);
+console.log(serviceTwo.callServiceThree());
+// console.log(serviceTwo.callServiceThree());
+// console.log(serviceTwo.callServiceThree());
 
 // console.log(serviceOne.printMessage());
 
@@ -58,12 +67,10 @@ console.log(serviceOne.callServiceTwo());
 // const serviceTest = new ServiceOne(serviceThree);
 // console.log(serviceTest.printMessage());
 
-const serviceOneSecond = IoC.resolve(ServiceOne);
+const serviceThree = IoC.resolve(ServiceThree);
+console.log(serviceThree.callServiceTwo());
 // console.log(serviceOneSecond.printMessage());
-console.log(serviceOneSecond.callServiceTwo());
 
-// const serviceThree = IoC.resolve(ServiceThree);
-// console.log(serviceThree.getMessage());
 
 
 //   Fetch ServiceFour which has nested dependencies

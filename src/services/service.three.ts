@@ -1,20 +1,25 @@
-import { Inject } from '../decorators/inject.decorator';
+import { ParamTypes } from '../containers/testContainer';
+import { CD, forwardRef, Inject, InjectDependency } from '../decorators/inject.decorator';
 import { ServiceOne } from './service.one';
 import { ServiceTwo } from './service.two';
 
 @Inject()
+// @ParamTypes(ServiceOne)
 export class ServiceThree {
     private index = 0;
    
   constructor(
-     private serviceOne: ServiceOne
+    @InjectDependency(forwardRef(() => ServiceTwo)) private serviceTwo: ServiceTwo
   ) {
-    console.log('ServiceThree initialized');
+    console.log('ServiceThree initialized with ServiceOne');
   }
 
   public getMessage() {
-    // console.log(this.serviceOne.printMessage);
-    //this.index = this.index + 1;
+    this.index = this.index + 1;
     return 'Hello from ServiceThree! ' +  this.index;
+  }
+
+  public callServiceTwo() {
+    return this.serviceTwo.printMessage();
   }
 } 

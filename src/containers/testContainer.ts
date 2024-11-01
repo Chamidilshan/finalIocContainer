@@ -1,5 +1,14 @@
 import 'reflect-metadata';
 
+export const paramTypesStore = new Map<string, any[]>();
+
+export function ParamTypes(...types: any[]) {
+  return (target: any) => {
+    console.log(`Setting param types for ${target.name} to: ${types}`);
+    paramTypesStore.set(target.name, types);
+  };
+}
+
 export class IoC {
   private static container = new Map<string, any>(); // Store instances of classes with unique keys
   private static inProgress = new Map<string, any>(); // Track instances that are in the process of being created
@@ -9,7 +18,7 @@ export class IoC {
   public static register<T>(target: { new (...args: any[]): T }): void {
     const isInjectable = Reflect.getMetadata('isInjectable', target);
     if (isInjectable) {
-      console.log(`Registering class: ${target.name}`);
+      // console.log(`Registering class: ${target.name}`);
       IoC.container.set(target.name, null); // Store the class name as key with a null instance initially
     }
   }
@@ -21,7 +30,7 @@ export class IoC {
     console.log(`Resolving dependencies for ${key}...`);
 
     // Check if an instance is already created or in-progress
-    if (IoC.container.has(key)) {
+    if (IoC.container.has(key)) { 
       const existingInstance = IoC.container.get(key);
       if (existingInstance) {
         console.log(`Returning existing instance of: ${key}`);
@@ -36,14 +45,23 @@ export class IoC {
     }
 
     // Get the constructor parameter types (dependencies)
-    const paramTypes = Reflect.getMetadata('design:paramtypes', target) || [];
-    // console.log( `paramTypes: ${paramTypes}`);
+    console.log('target is: ', target);
+    // const paramTypes = Reflect.getMetadata('design:paramtypes', target) || [];
+    const paramTypes = paramTypesStore.get(target.name) || [];
+    
+    console.log( `paramTypes for target ${target.name} are: ${paramTypes} `);
 
     // First resolve dependencies and create proxies for them, without immediately resolving them
     const dependencies = paramTypes
       .filter((param: any) => param !== undefined) // Filter out undefined values
       .map((param: any) => {
-        console.log(`${param.name} is a dependency for ${key}`);
+        console.log(`Hello1`);
+        // console.log(`${param.name} is a dependency for ${key}`);
+
+        if (param && typeof param === 'function' && param.forwardRefFn) {
+         
+          return IoC.resolve(param.forwardRefFn());
+        }
 
         // Create a proxy for the dependency
         if (!IoC.container.has(param.name)) {
@@ -76,13 +94,21 @@ export class IoC {
           console.log(`Proxy Created for ${param.name}`);
         }
 
+        if (IoC.container.has(param.name)) {
+         return IoC.container.get(param.name);
+        }
+
+        
+
+        console.log(`Hello2`);
         // Return the proxy without fully resolving the dependency yet
         return IoC.inProgress.get(param.name);
       });
 
     // Now, create the instance of the current class using the proxies
-    console.log(`Creating new instance of: ${key} with proxies of dependencies.`);
+    // console.log(`Creating new instance of: ${key} with proxies of dependencies.`);
     const newInstance = new target(...dependencies);
+    console.log(`Dependencies resolved for ${dependencies.length}.`);
     IoC.container.set(key, newInstance); // Store the actual instance in the IoC container
     IoC.inProgress.delete(key); // Remove the proxy entry
 
@@ -95,13 +121,13 @@ export class IoC {
     }
 
     // After initializing the current class, resolve the dependencies fully
-    dependencies.forEach((_dependency: any, index: string | number) => {
-      const paramType = paramTypes[index];
-      if (!IoC.container.get(paramType.name)) {
-        console.log(`Resolving full instance for dependency: ${paramType.name} after initializing ${key}`);
-        IoC.resolve(paramType); // Now fully resolve the dependency
-      }
-    });
+    // dependencies.forEach((_dependency: any, index: string | number) => {
+    //   const paramType = paramTypes[index];
+    //   if (!IoC.container.get(paramType.name)) {
+    //     console.log(`Resolving full instance for dependency: ${paramType.name} after initializing ${key}`);
+    //     IoC.resolve(paramType); // Now fully resolve the dependency
+    //   }
+    // });
 
     return newInstance;
   }
@@ -112,11 +138,27 @@ export class IoC {
     classes.forEach((cls) => {
       const isInjectable = Reflect.getMetadata('isInjectable', cls);
       if (isInjectable) {
+        console.log('............................................');
+        console.log(`Initializing ${cls.name}...`);
         IoC.resolve(cls); // Resolve all @Inject classes
       } else {
         console.log(`Skipping ${cls.name}, as it doesn't use @Inject.`);
       }
     });
+    IoC.finalizeResolution();
     console.log('IoC initialized: All dependencies resolved.');
   }
+
+
+  public static finalizeResolution() {
+    IoC.proxies.forEach((proxy, key) => {
+        const realInstance = IoC.container.get(key);
+        if (realInstance) {
+            console.log(`Finalizing proxy for ${key} to point to the real instance`);
+            IoC.proxies.set(key, realInstance); // Update proxy to point to real instance
+        }
+    });
+}
+
+
 }
